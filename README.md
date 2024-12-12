@@ -5,5 +5,5 @@
 
 ## Installation
 
-- Python version 12.7
+- Python version 3.12.7
 - pip install streamlit 
