@@ -1,7 +1,6 @@
 # Geräteverwaltung
 
-
-*Beschreibung*
+Programm zur Verwaltung von Geräten an Hochschulen
 
 ## Installation
 
