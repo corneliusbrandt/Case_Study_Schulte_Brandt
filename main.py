@@ -4,10 +4,11 @@ from datetime import datetime, timedelta
 import src.users as users
 import src.devices as devices
 import src.queries as queries
+import src.reservations as reservations
 
 user_manager = users.User()
 device_manager = devices.Device()
-#reservation_manager = Datenbank.Reservation()
+reservation_manager = reservations.Reservation()
 
 st.title("Geräte- und Reservierungsmanager")
 
