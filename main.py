@@ -21,13 +21,13 @@ if menu == "Benutzer":
         name = st.text_input("Name")
         email = st.text_input("Email")
         if st.button("Benutzer hinzufügen"):
-            user_manager.add(name, email)
+            user_manager.store_data()
             st.success("Benutzer hinzugefügt")
 
         st.subheader("Benutzerliste")
     
     if action == "Benutzer bearbeiten":
-        users = user_manager.get_all()
+        users = queries.find_devices()
         user_id = st.selectbox("Benutzer auswählen", [user.doc_id for user in user_manager.table], format_func=lambda x: next(u['name'] for u in users if u.doc_id == x))
         user = next(u for u in users if u.doc_id == user_id)
 
@@ -35,7 +35,8 @@ if menu == "Benutzer":
         email = st.text_input("Email", value=user['email'])
 
         if st.button("Benutzer aktualisieren"):
-            user_manager.table.update({'name': name, 'email': email}, doc_ids=[user_id])
+            #user_manager.table.update({'name': name, 'email': email}, doc_ids=[user_id])
+            user_manager.store_data()
             st.success("Benutzer aktualisiert")
     
     users = user_manager.get_all()
