@@ -5,7 +5,7 @@ from src.serializer import serializer
 def find_devices() -> list:
     """Find all devices in the database."""
     # Define the database connector
-    db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.json'), storage=serializer).table('devices')
+    db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('devices')
     # Search the database for all devices that are active
     result = db_connector.all()
     

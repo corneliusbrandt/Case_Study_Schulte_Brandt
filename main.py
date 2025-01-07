@@ -128,4 +128,3 @@ elif menu == "Reservierungen":
         st.write(f"Benutzer ID: {res['user_id']}, Gerät ID: {res['device_id']}, Von: {res['start_time']}, Bis: {res['end_time']}")
 
 
-#test

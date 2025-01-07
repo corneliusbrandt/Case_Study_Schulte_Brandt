@@ -1,4 +1,11 @@
+import os
+
+from tinydb import TinyDB, Query
+from src.serializer import serializer
+
 class User:
+    db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
+
     def __init__(self, id, name) -> None:
         """Create a new user based on the given name and id"""
         self.name = name
