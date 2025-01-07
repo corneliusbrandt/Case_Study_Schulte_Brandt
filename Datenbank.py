@@ -1,7 +1,8 @@
 from tinydb import TinyDB, Query
+import os
 
 DB_FILE = 'device_manager.json'
-db = TinyDB(DB_FILE)
+db = TinyDB(os.path.join(os.path.dirname(__file__), DB_FILE))
 
 
 class User:
