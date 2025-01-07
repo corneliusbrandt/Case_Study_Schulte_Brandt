@@ -123,3 +123,5 @@ elif menu == "Reservierungen":
     reservations = reservation_manager.get_all()
     for res in reservations:
         st.write(f"Benutzer ID: {res['user_id']}, Gerät ID: {res['device_id']}, Von: {res['start_time']}, Bis: {res['end_time']}")
+
+        
