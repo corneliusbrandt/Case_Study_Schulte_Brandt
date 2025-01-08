@@ -1,3 +1,3 @@
-class reservations():
+class Reservations():
 
     pass

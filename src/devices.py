@@ -1,7 +1,7 @@
 import os
 
 from tinydb import TinyDB, Query
-from src.serializer import serializer
+from serializer import serializer
 
 
 class Device():

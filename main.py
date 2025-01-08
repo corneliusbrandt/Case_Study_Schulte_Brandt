@@ -27,7 +27,7 @@ if menu == "Benutzer":
         st.subheader("Benutzerliste")
     
     if action == "Benutzer bearbeiten":
-        users = queries.find_devices()
+        users = queries.find_users()
         user_id = st.selectbox("Benutzer auswählen", [user.doc_id for user in user_manager.table], format_func=lambda x: next(u['name'] for u in users if u.doc_id == x))
         user = next(u for u in users if u.doc_id == user_id)
 
@@ -39,7 +39,7 @@ if menu == "Benutzer":
             user_manager.store_data()
             st.success("Benutzer aktualisiert")
     
-    users = user_manager.get_all()
+    users = queries.find_users()
     for user in users:
         st.write(f"Name: {user['name']}, Email: {user['email']}")
 
@@ -55,11 +55,11 @@ elif menu == "Geräte":
         maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01)
         status = st.selectbox("Status", ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"])
         if st.button("Gerät hinzufügen"):
-            device_manager.add(name, responsible, end_of_life, maintenance_interval, maintenance_cost, status)
+            device_manager.store_data()
             st.success("Gerät hinzugefügt")
 
     elif action == "Gerät bearbeiten":
-        devices = device_manager.get_all()
+        devices = queries.find_devices()
         device_id = st.selectbox("Gerät auswählen", [device.doc_id for device in device_manager.table], format_func=lambda x: next(d['name'] for d in devices if d.doc_id == x))
         device = next(d for d in devices if d.doc_id == device_id)
 
@@ -71,26 +71,19 @@ elif menu == "Geräte":
         status = st.selectbox("Status", ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"], index=["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"].index(device['status']))
 
         if st.button("Gerät aktualisieren"):
-            device_manager.table.update({
-                'name': name,
-                'responsible': responsible,
-                'end_of_life': end_of_life.strftime('%Y-%m-%d'),
-                'maintenance_interval': maintenance_interval,
-                'maintenance_cost': maintenance_cost,
-                'status': status
-            }, doc_ids=[device_id])
+            device_manager.store_data()
             st.success("Gerät aktualisiert")
 
     st.subheader("Geräteliste")
-    devices = device_manager.get_all()
+    devices = queries.find_devices()
     for device in devices:
         st.write(f"Name: {device['name']}, Verantwortlicher: {device['responsible']}, Status: {device['status']}")
 
 elif menu == "Reservierungen":
     st.header("Reservierungssystem")
 
-    users = user_manager.get_all()
-    devices = device_manager.get_all()
+    users = queries.find_users()
+    devices = queries.find_devices()
 
     if not users or not devices:
         st.warning("Bitte fügen Sie zuerst Benutzer und Geräte hinzu.")

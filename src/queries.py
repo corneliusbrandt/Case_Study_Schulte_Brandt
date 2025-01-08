@@ -15,5 +15,14 @@ def find_devices() -> list:
     
     return result
 
+def find_users() -> list:
+    """Find all users in the database."""
+    # Define the database connector
+    db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
+    # Search the database for all users
+    result = db_connector.all()
+    
+    return result
+
 if __name__ == "__main__":
     print(find_devices())
