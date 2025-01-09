@@ -1,10 +1,10 @@
 import streamlit as st
 from tinydb import TinyDB, Query
 from datetime import datetime, timedelta
-import src.users as users
-import src.devices as devices
-import src.queries as queries
-import src.reservations as reservations
+import users as users
+import devices as devices
+import queries as queries
+import reservations as reservations
 
 user_manager = users.User()
 device_manager = devices.Device()

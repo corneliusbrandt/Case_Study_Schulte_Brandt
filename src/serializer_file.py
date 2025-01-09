@@ -2,7 +2,7 @@ from datetime import datetime, date, time
 from tinydb.storages import JSONStorage
 from tinydb_serialization import Serializer, SerializationMiddleware
 
-from tinydb_serialization.serializers import DateTimeSerializer
+#from tinydb_serialization import DateTimeSerializer
 
 class DateSerializer(Serializer):
     # The class this serializer handles --> must be date instead of datetime.date
@@ -23,6 +23,16 @@ class TimeSerializer(Serializer):
 
     def decode(self, s):
         return time.fromisoformat(s)
+    
+
+class DateTimeSerializer(Serializer):
+    OBJ_CLASS = datetime  # The class this serializer handles
+
+    def encode(self, obj):
+        return obj.strftime('%Y-%m-%dT%H:%M:%S')
+
+    def decode(self, s):
+        return datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 serializer = SerializationMiddleware(JSONStorage)
 serializer.register_serializer(DateTimeSerializer(), 'TinyDateTime')

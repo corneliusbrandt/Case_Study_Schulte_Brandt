@@ -1,6 +1,6 @@
 import os
 from tinydb import TinyDB, Query
-from src.serializer import serializer
+from serializer_file import serializer
 
 def find_devices() -> list:
     """Find all devices in the database."""
