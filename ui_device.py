@@ -1,6 +1,6 @@
 import streamlit as st
-from queries import find_devices
-from devices import Device
+from src.queries import find_devices
+from src.devices import Device
 
 # Eine Überschrift der ersten Ebene
 st.write("# Gerätemanagement")
