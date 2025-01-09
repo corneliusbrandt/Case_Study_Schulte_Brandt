@@ -1,3 +1,9 @@
+import sys
+import pathlib
+
+sys.path.append(str(pathlib.Path(__file__)))
+sys.path.append(str(pathlib.Path(__file__).parent))
+
 import os
 from tinydb import TinyDB, Query
 from serializer_file import serializer
