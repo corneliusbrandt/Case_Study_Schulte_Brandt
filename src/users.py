@@ -1,7 +1,7 @@
 import os
 
 from tinydb import TinyDB, Query
-from serializer import serializer
+from serializer_file import serializer
 
 class User:
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
