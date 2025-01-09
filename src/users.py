@@ -1,34 +1,40 @@
 import os
 
 from tinydb import TinyDB, Query
-from serializer_file import serializer
+from serializer import serializer
 
 class User:
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
 
-    def __init__(self, id, name) -> None:
+    def __init__(self, id, name, email) -> None:
         """Create a new user based on the given name and id"""
-        self.name = name
-        self.id = id
+        self.user_name = name
+        self.user_id = id
 
     def store_data(self)-> None:
         """Save the user to the database"""
         print("Storing data...")
-        DeviceQuery = Query()
-        result = self.db_connector.search(DeviceQuery.name == self.name)
+        # Check if the device already exists in the database
+        UserQuery = Query()
+        result = self.db_connector.search(UserQuery.user_name == self.user_name)
+
         if result:
+            # Update the existing record with the current instance's data
             result = self.db_connector.update(self.__dict__, doc_ids=[result[0].doc_id])
             print("Data updated.")
         else:
+            # If the device doesn't exist, insert a new record
             self.db_connector.insert(self.__dict__)
             print("Data inserted.")
 
     def delete(self) -> None:
         """Delete the user from the database"""
         print("Deleting data...")
-        DeviceQuery = Query()
-        result = self.db_connector.search(DeviceQuery.name == self.name)
+        # Check if the device exists in the database
+        UserQuery = Query()
+        result = self.db_connector.search(UserQuery.user_name == self.user_name)
         if result:
+            # Delete the record from the database
             self.db_connector.remove(doc_ids=[result[0].doc_id])
             print("Data deleted.")
         else:
@@ -43,17 +49,23 @@ class User:
     @staticmethod
     def find_all(cls) -> list:
         """Find all users in the database"""
+        # Load all data from the database and create instances of the Device class
         users = []
-        for user in User.db_connector.all():
-            users.append(User(user['id'], user['name']))
+        for user_data in User.db_connector.all():
+            users.append(User(user_data['device_name'], user_data['user_id']))
         return users
 
     @classmethod
-    def find_by_attribute(cls, by_attribute : str, attribute_value : str) -> 'User':
+    def find_by_attribute(cls, by_attribute : str, attribute_value : str, num_to_return=1) -> 'User':
         """From the matches in the database, select the user with the given attribute value"""
+
+        # Load data from the database and create an instance of the Device class
         UserQuery = Query()
         result = cls.db_connector.search(UserQuery[by_attribute] == attribute_value)
+
         if result:
-            return User(result[0]['id'], result[0]['name'])
+            data = result[:num_to_return]
+            user_results = [cls(d['device_name'], d['managed_by_user_id']) for d in data]
+            return user_results if num_to_return > 1 else user_results[0]
         else:
             return None

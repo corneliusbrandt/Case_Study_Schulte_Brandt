@@ -16,6 +16,7 @@ class Device():
         # We don't store the user object itself, but only the id (as a key)
         self.managed_by_user_id = managed_by_user_id
         self.is_active = True
+
         
     # String representation of the class
     def __str__(self):
