@@ -6,17 +6,17 @@ from src.serializer_file import serializer
 class User:
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
 
-    def __init__(self, id, name) -> None:
+    def __init__(self, name, email) -> None:
         """Create a new user based on the given name and id"""
-        self.user_name = name
-        self.user_id = id
+        self.name = name
+        self.email = email
 
     def store_data(self)-> None:
         """Save the user to the database"""
         print("Storing data...")
         # Check if the device already exists in the database
         UserQuery = Query()
-        result = self.db_connector.search(UserQuery.user_name == self.user_name)
+        result = self.db_connector.search(UserQuery.name == self.name)
 
         if result:
             # Update the existing record with the current instance's data
@@ -32,7 +32,7 @@ class User:
         print("Deleting data...")
         # Check if the device exists in the database
         UserQuery = Query()
-        result = self.db_connector.search(UserQuery.user_name == self.user_name)
+        result = self.db_connector.search(UserQuery.name == self.name)
         if result:
             # Delete the record from the database
             self.db_connector.remove(doc_ids=[result[0].doc_id])
@@ -42,7 +42,7 @@ class User:
 
     
     def __str__(self):
-        return f"User {self.id} - {self.name}"
+        return f"User {self.email} - {self.name}"
     
     def __repr__(self):
         return self.__str__()
@@ -66,7 +66,7 @@ class User:
 
         if result:
             data = result[:num_to_return]
-            user_results = [cls(d['device_name'], d['managed_by_user_id']) for d in data]
+            user_results = [cls(d['name'], d['email']) for d in data]
             return user_results if num_to_return > 1 else user_results[0]
         else:
             return None
