@@ -10,7 +10,7 @@ class Device():
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('devices')
 
     # Constructor
-    def __init__(self, device_name : str, managed_by_user_id : str, end_of_life=None, maintenance_interval=None, maintenance_cost=None, status=None) -> None:
+    def __init__(self, device_name : str, managed_by_user_id : str, end_of_life=None, maintenance_interval=None, maintenance_cost=None, status=None, doc_id=None) -> None:
         self.device_name = device_name
 
         # The user id of the user that manages the device
@@ -21,6 +21,7 @@ class Device():
         self.maintenance_cost = maintenance_cost
         self.status = status
         self.is_active = True
+        self.id = doc_id
 
         
     # String representation of the class

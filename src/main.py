@@ -24,20 +24,16 @@ if menu == "Benutzer":
         st.subheader("Benutzerliste")
     
     if action == "Benutzer bearbeiten":
-        users_in_db = queries.find_users()
-        #user_id = st.selectbox("Benutzer auswählen", [user.doc_id for user in users_in_db], format_func=lambda x: next(u['name'] for u in users_in_db if u.doc_id == x))
-        #user = next(u for u in users if u.doc_id == user_id)
-        #user = users.User.find_by_attribute("name", user_id)
+        users_list = users.User.find_all()
+        user_id = st.selectbox("Benutzer auswählen", [user.email for user in users_list], format_func=lambda x: next(u.name for u in users_list if u.email == x))
+        user = next((u for u in users_list if u.email == user_id), None)
 
-        current_user_id = st.selectbox('Benutzer auswählen', options=users_in_db, key="sbUser")
-        loaded_user = users.User.find_by_attribute("name", current_user_id)
-
-        name = st.text_input("Name", value=loaded_user['name'])
-        email = st.text_input("Email", value=loaded_user['email'])
+        user.name = st.text_input("Name", value=user.name)
+        user.email = st.text_input("Email", value=user.email)
 
         if st.button("Benutzer aktualisieren"):
             #user_manager.table.update({'name': name, 'email': email}, doc_ids=[user_id])
-            loaded_user.store_data()
+            user.store_data()
             st.success("Benutzer aktualisiert")
     
     users = queries.find_users()
@@ -61,25 +57,35 @@ elif menu == "Geräte":
             st.success("Gerät hinzugefügt")
 
     elif action == "Gerät bearbeiten":
-        devices = queries.find_devices()
-        device_id = st.selectbox("Gerät auswählen", [device.doc_id for device in devices], format_func=lambda x: next(d['name'] for d in devices if d.doc_id == x))
-        device = next(d for d in devices if d.doc_id == device_id)
+        devices_list = devices.Device.find_all()
+        device_id = st.selectbox("Gerät auswählen", [device.device_name for device in devices_list], format_func=lambda x: next(d.device_name for d in devices_list if d.device_name == x))
+        device = next((d for d in devices_list if d.device_name == device_id), None)
+        if device is None:
+            st.error("Gerät nicht gefunden")
+            st.stop()
 
-        name = st.text_input("Gerätename", value=device['device_name'])
-        managed_by_user_id = st.text_input("Verantwortlicher", value=device['manged_by_user_id'])
-        end_of_life = st.date_input("End of Life", value=datetime.strptime(device['end_of_life'], '%Y-%m-%d'))
-        maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=1, step=1, value=device['maintenance_interval'])
-        maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01, value=device['maintenance_cost'])
-        status = st.selectbox("Status", ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"], index=["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"].index(device['status']))
+        device.managed_by_user_id = st.text_input("Verantwortlicher", value=device.managed_by_user_id)
+        device.end_of_life = st.date_input("End of Life", value=datetime.strptime(device.end_of_life, '%Y-%m-%d') if device.end_of_life else datetime.today()).strftime('%Y-%m-%d')
+        device.maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=1, step=1, value=device.maintenance_interval)
+        device.maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01, value=device.maintenance_cost)
+        status_options = ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"]
+        status_index = status_options.index(device.status) if device.status in status_options else 0
+        device.status = st.selectbox("Status", status_options, index=status_index)
 
         if st.button("Gerät aktualisieren"):
             device.store_data()
+            st.rerun()
             st.success("Gerät aktualisiert")
 
+        if st.button("Gerät löschen"):
+            device.delete()
+            st.rerun()
+            st.success("Gerät gelöscht")
+
     st.subheader("Geräteliste")
-    devices = queries.find_devices()
-    for device in devices:
-        st.write(f"Name: {device['device_name']}, Verantwortlicher: {device['managed_by_user_id']}, Status: {device['status']}")
+    devices_list = devices.Device.find_all()
+    for device in devices_list:
+        st.write(f"Name: {device.device_name}, Verantwortlicher: {device.managed_by_user_id}, Status: {device.status}")
 
 
 elif menu == "Reservierungen":
