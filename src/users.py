@@ -1,12 +1,12 @@
 import os
 
 from tinydb import TinyDB, Query
-from serializer_file import serializer
+from src.serializer_file import serializer
 
 class User:
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
 
-    def __init__(self, id, name, email) -> None:
+    def __init__(self, id, name) -> None:
         """Create a new user based on the given name and id"""
         self.user_name = name
         self.user_id = id
@@ -39,6 +39,7 @@ class User:
             print("Data deleted.")
         else:
             print("Data not found.")
+
     
     def __str__(self):
         return f"User {self.id} - {self.name}"
