@@ -27,17 +27,26 @@ if menu == "Benutzer":
         users_list = users.User.find_all()
         user_id = st.selectbox("Benutzer auswählen", [user.email for user in users_list], format_func=lambda x: next(u.name for u in users_list if u.email == x))
         user = next((u for u in users_list if u.email == user_id), None)
+        if user is None:
+            st.error("Benutzer nicht gefunden")
+            st.stop()
 
-        user.name = st.text_input("Name", value=user.name)
+        #user.name = st.text_input("Name", value=user.name)
         user.email = st.text_input("Email", value=user.email)
 
         if st.button("Benutzer aktualisieren"):
             #user_manager.table.update({'name': name, 'email': email}, doc_ids=[user_id])
             user.store_data()
+            st.rerun()
             st.success("Benutzer aktualisiert")
+
+        if st.button("Benutzer löschen"):
+            user.delete()
+            st.rerun()
+            st.success("Benutzer gelöscht")
     
-    users = queries.find_users()
-    for user in users:
+    users_for_userlist = queries.find_users()
+    for user in users_for_userlist:
         st.write(f"Name: {user['name']}, Email: {user['email']}")
 
 elif menu == "Geräte":
@@ -51,10 +60,13 @@ elif menu == "Geräte":
         maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=1, step=1)
         maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01)
         status = st.selectbox("Status", ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"])
+
         if st.button("Gerät hinzufügen"):
             #device_manager.store_data()
             devices.Device(device_name, managed_by_user_id, end_of_life, maintenance_interval, maintenance_cost, status).store_data()
             st.success("Gerät hinzugefügt")
+
+        
 
     elif action == "Gerät bearbeiten":
         devices_list = devices.Device.find_all()

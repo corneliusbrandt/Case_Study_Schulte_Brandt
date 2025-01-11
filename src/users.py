@@ -47,13 +47,13 @@ class User:
     def __repr__(self):
         return self.__str__()
     
-    @staticmethod
+    @classmethod
     def find_all(cls) -> list:
         """Find all users in the database"""
         # Load all data from the database and create instances of the Device class
         users = []
         for user_data in User.db_connector.all():
-            users.append(User(user_data['device_name'], user_data['user_id']))
+            users.append(User(user_data['name'], user_data['email']))
         return users
 
     @classmethod
