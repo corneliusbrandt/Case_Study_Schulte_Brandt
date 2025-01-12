@@ -97,7 +97,7 @@ elif menu == "Geräte":
     st.subheader("Geräteliste")
     devices_list = devices.Device.find_all()
     for device in devices_list:
-        st.write(f"Name: {device.device_name}, Verantwortlicher: {device.managed_by_user_id}, Status: {device.status}")
+        st.write(f"Name: {device.device_name}, Verantwortlicher: {device.managed_by_user_id}")
 
 
 elif menu == "Reservierungen":
