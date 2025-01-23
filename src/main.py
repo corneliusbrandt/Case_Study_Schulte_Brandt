@@ -103,21 +103,20 @@ elif menu == "Geräte":
 elif menu == "Reservierungen":
     st.header("Reservierungssystem")
 
-    users = queries.find_users()
-    devices = queries.find_devices()
+    user_list_for_res = users.User.find_all()
+    device_list_for_res = devices.Device.find_all()
 
-    if not users or not devices:
+    if not user_list_for_res or not device_list_for_res:
         st.warning("Bitte fügen Sie zuerst Benutzer und Geräte hinzu.")
     else:
-        user_id = st.selectbox(
-            "Benutzer", 
-            [user.doc_id for user in user_manager.table], 
-            format_func=lambda x: next(u['name'] for u in users if u.doc_id == x)
-        )
         device_id = st.selectbox(
             "Gerät", 
-            [device.doc_id for device in device_manager.table], 
-            format_func=lambda x: next(d['name'] for d in devices if d.doc_id == x)
+            [device.device_name for device in device_list_for_res], 
+        )
+        
+        user_id = st.selectbox(
+            "Benutzer", 
+            [user.name for user in user_list_for_res], 
         )
         
         start_date = st.date_input("Startdatum")
@@ -131,15 +130,21 @@ elif menu == "Reservierungen":
         if end_time <= start_time:
             st.error("Endzeit muss nach der Startzeit liegen.")
         else:
+            if reservations.Reservation.find_by_attribute("res_device_id", device_id):
+                st.warning("Gerät bereits reserviert. Sie können die bestehende Reservierung ändern oder löschen.")
             if st.button("Reservieren"):
-                if reservation_manager.add(user_id, device_id, start_time, end_time):
-                    st.success("Reservierung erfolgreich")
-                else:
-                    st.error("Konflikt: Gerät ist bereits reserviert")
+                reservations.Reservation(device_id, user_id, start_datetime, end_datetime).store_data()
+                st.success("Gerät reserviert")
+            if st.button("Reservierung löschen"):
+                reservations.Reservation.find_by_attribute("res_device_id", device_id).delete()
+                st.success("Reservierung gelöscht")
 
     st.subheader("Reservierungsliste")
-    reservations = reservation_manager.get_all()
-    for res in reservations:
-        st.write(f"Benutzer ID: {res['user_id']}, Gerät ID: {res['device_id']}, Von: {res['start_time']}, Bis: {res['end_time']}")
+    reservation_list = reservations.Reservation.find_all()
+    if reservation_list:
+        for res in reservation_list:
+            st.write(f"Reserviertes Gerät: {res.res_device_id}, Verantwortlicher: {res.res_user_id}, Start: {res.res_start_date}, Ende: {res.res_end_date}")
+    else:
+        st.write("Keine Reservierungen vorhanden")
 
 
