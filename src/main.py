@@ -55,7 +55,8 @@ elif menu == "Geräte":
 
     if action == "Gerät hinzufügen":
         device_name = st.text_input("Gerätename")
-        managed_by_user_id = st.text_input("Verantwortlicher")
+        users_list = users.User.find_all()
+        managed_by_user_id = st.selectbox("Verantwortlicher", [user.name for user in users_list])
         end_of_life = st.date_input("End of Life")
         maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=1, step=1)
         maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01)
