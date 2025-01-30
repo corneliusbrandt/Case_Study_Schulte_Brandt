@@ -99,6 +99,8 @@ class Device():
         maintance_cost_next_month = 0
         for device_data in Device.db_connector.all():
             maintenance_next_month = datetime.datetime.now().date() + datetime.timedelta(days=30)
+            print(type(maintenance_next_month))
+            print(type(device_data['maintenance_next']))
             if device_data['maintenance_next'] <= maintenance_next_month:
                 maintance_cost_next_month += int(device_data['maintenance_cost'])
 
