@@ -7,9 +7,10 @@ import queries as queries
 import reservations as reservations
 
 
+
 st.title("Geräte- und Reservierungsmanager")
 
-menu = st.sidebar.radio("Menü", ["Benutzer", "Geräte", "Reservierungen"])
+menu = st.sidebar.radio("Menü", ["Benutzer", "Geräte", "Reservierungen", "Wartungsmanager"])
 
 if menu == "Benutzer":
     action = st.radio("Aktion", ["Benutzer hinzufügen", "Benutzer bearbeiten"])
@@ -55,7 +56,8 @@ elif menu == "Geräte":
 
     if action == "Gerät hinzufügen":
         device_name = st.text_input("Gerätename")
-        managed_by_user_id = st.text_input("Verantwortlicher")
+        users_list = users.User.find_all()
+        managed_by_user_id = st.selectbox("Verantwortlicher", [user.name for user in users_list])
         end_of_life = st.date_input("End of Life")
         maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=1, step=1)
         maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01)
@@ -63,7 +65,7 @@ elif menu == "Geräte":
 
         if st.button("Gerät hinzufügen"):
             #device_manager.store_data()
-            devices.Device(device_name, managed_by_user_id, end_of_life, maintenance_interval, maintenance_cost, status).store_data()
+            devices.Device(device_name=device_name, managed_by_user_id=managed_by_user_id, end_of_life=end_of_life, maintenance_interval=maintenance_interval, maintenance_cost=maintenance_cost, status=status).store_data()
             st.success("Gerät hinzugefügt")
 
         
@@ -78,7 +80,7 @@ elif menu == "Geräte":
 
         device.managed_by_user_id = st.text_input("Verantwortlicher", value=device.managed_by_user_id)
         device.end_of_life = st.date_input("End of Life", value=datetime.strptime(device.end_of_life, '%Y-%m-%d') if device.end_of_life else datetime.today()).strftime('%Y-%m-%d')
-        device.maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=1, step=1, value=device.maintenance_interval)
+        device.maintenance_interval = st.number_input("Wartungsintervall (Tage)", min_value=0, step=1, value=device.maintenance_interval)
         device.maintenance_cost = st.number_input("Wartungskosten", min_value=0.0, step=0.01, value=device.maintenance_cost)
         status_options = ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"]
         status_index = status_options.index(device.status) if device.status in status_options else 0
@@ -103,21 +105,20 @@ elif menu == "Geräte":
 elif menu == "Reservierungen":
     st.header("Reservierungssystem")
 
-    users = queries.find_users()
-    devices = queries.find_devices()
+    user_list_for_res = users.User.find_all()
+    device_list_for_res = devices.Device.find_all()
 
-    if not users or not devices:
+    if not user_list_for_res or not device_list_for_res:
         st.warning("Bitte fügen Sie zuerst Benutzer und Geräte hinzu.")
     else:
-        user_id = st.selectbox(
-            "Benutzer", 
-            [user.doc_id for user in user_manager.table], 
-            format_func=lambda x: next(u['name'] for u in users if u.doc_id == x)
-        )
         device_id = st.selectbox(
             "Gerät", 
-            [device.doc_id for device in device_manager.table], 
-            format_func=lambda x: next(d['name'] for d in devices if d.doc_id == x)
+            [device.device_name for device in device_list_for_res], 
+        )
+        
+        user_id = st.selectbox(
+            "Benutzer", 
+            [user.name for user in user_list_for_res], 
         )
         
         start_date = st.date_input("Startdatum")
@@ -131,15 +132,51 @@ elif menu == "Reservierungen":
         if end_time <= start_time:
             st.error("Endzeit muss nach der Startzeit liegen.")
         else:
+            if reservations.Reservation.find_by_attribute("res_device_id", device_id):
+                st.warning("Gerät bereits reserviert. Sie können die bestehende Reservierung ändern oder löschen.")
             if st.button("Reservieren"):
-                if reservation_manager.add(user_id, device_id, start_time, end_time):
-                    st.success("Reservierung erfolgreich")
-                else:
-                    st.error("Konflikt: Gerät ist bereits reserviert")
+                reservations.Reservation(device_id, user_id, start_datetime, end_datetime).store_data()
+                st.success("Gerät reserviert")
+            if st.button("Reservierung löschen"):
+                reservations.Reservation.find_by_attribute("res_device_id", device_id).delete()
+                st.success("Reservierung gelöscht")
 
     st.subheader("Reservierungsliste")
-    reservations = reservation_manager.get_all()
-    for res in reservations:
-        st.write(f"Benutzer ID: {res['user_id']}, Gerät ID: {res['device_id']}, Von: {res['start_time']}, Bis: {res['end_time']}")
+    reservation_list = reservations.Reservation.find_all()
+    if reservation_list:
+        for res in reservation_list:
+            st.write(f"Reserviertes Gerät: {res.res_device_id}, Verantwortlicher: {res.res_user_id}, Start: {res.res_start_date}, Ende: {res.res_end_date}")
+    else:
+        st.write("Keine Reservierungen vorhanden")
 
+elif menu == "Wartungsmanager":
+    st.header("Wartungsmanager")
+
+    devices_list = devices.Device.find_all()
+    maintenance_list = devices.Device.find_maintenance()
+    maintenance_cost_next = devices.Device.update_maintenance()
+    st.write(f"Kosten für die nächsten Wartungen: {maintenance_cost_next}")
+
+    
+
+    maintenance_id = st.selectbox("Gerät auswählen", [device.device_name for device in devices_list], format_func=lambda x: next(d.device_name for d in devices_list if d.device_name == x))
+    device = next((d for d in maintenance_list if d.device_name == maintenance_id), None)
+    device.status = st.selectbox("Status", ["Einsatzbereit", "Wartung", "Fehlerhaft", "Außerbetrieb"])
+    device.maintenance_last = st.date_input("Last Maintenance", value=datetime.strptime(device.maintenance_last, '%Y-%m-%d') if device.maintenance_last else datetime.today()).strftime('%Y-%m-%d')
+    gewartet = st.selectbox("Wartung durchgeführt", ["Ja", "Nein"])
+    if st.button("Wartungsstatus aktualisieren"):
+            if gewartet:
+                device.maintenance_next = datetime.strptime(device.maintenance_last, '%Y-%m-%d') + timedelta(days=device.maintenance_interval)
+                device.status = "Einsatzbereit"
+            device.store_data()
+            st.rerun()
+            st.success("Wartungsstatus aktualisiert")
+
+    if maintenance_list:
+        for maintenance in maintenance_list:
+            print(maintenance.maintenance_cost)
+            print(maintenance.maintenance_next)
+            st.write(f"Gerät: {maintenance.device_name}, Nächste Wartung: {maintenance.maintenance_next}, Wartungskosten: {maintenance.maintenance_cost}, Status: {maintenance.status}")
+    else:
+        st.write("Keine Wartungen anstehend")
 
