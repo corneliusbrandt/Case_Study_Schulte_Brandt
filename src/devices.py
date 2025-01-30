@@ -3,6 +3,7 @@ import os
 
 from tinydb import TinyDB, Query
 from serializer_file import serializer
+import datetime
 
 
 class Device():
@@ -10,17 +11,19 @@ class Device():
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('devices')
 
     # Constructor
-    def __init__(self, device_name : str, managed_by_user_id : str, end_of_life=None, maintenance_interval=None, maintenance_cost=None, status=None, doc_id=None) -> None:
+    def __init__(self, device_name : str, managed_by_user_id : str, end_of_life=None, maintenance_interval=None, maintanace_last=None, maintenance_cost=None, status=None, maintenance_next=None, doc_id=None) -> None:
         self.device_name = device_name
 
         # The user id of the user that manages the device
         # We don't store the user object itself, but only the id (as a key)
         self.managed_by_user_id = managed_by_user_id
         self.end_of_life = end_of_life
-        self.maintenance_interval = maintenance_interval
+        self.maintenance_interval = int(maintenance_interval) if maintenance_interval else 0
+        self.maintenance_last = datetime.datetime.now().date() if maintanace_last is None else 0
         self.maintenance_cost = maintenance_cost
         self.status = status
         self.is_active = True
+        self.maintenance_next = datetime.datetime.now().date() + datetime.timedelta(days=self.maintenance_interval)
         self.id = doc_id
 
         
@@ -62,10 +65,8 @@ class Device():
         """Expects `managed_by_user_id` to be a valid user id that exists in the database."""
         self.managed_by_user_id = managed_by_user_id
 
-    # Class method that can be called without an instance of the class to construct an instance of the class
     @classmethod
     def find_by_attribute(cls, by_attribute: str, attribute_value: str, num_to_return=1):
-        # Load data from the database and create an instance of the Device class
         DeviceQuery = Query()
         result = cls.db_connector.search(DeviceQuery[by_attribute] == attribute_value)
 
@@ -78,15 +79,30 @@ class Device():
 
     @classmethod
     def find_all(cls) -> list:
-        # Load all data from the database and create instances of the Device class
         devices = []
         for device_data in Device.db_connector.all():
             devices.append(Device(device_data['device_name'], device_data['managed_by_user_id']))
         return devices
-
-
-
     
+    @classmethod
+    def find_maintenance(cls) -> list:
+        """Find all maintenance entries in the database."""
+        maintanance = []
+        for maintenance_data in Device.db_connector.all():
+            print(maintenance_data['maintenance_cost'])
+            maintanance.append(Device(maintenance_data['device_name'], maintenance_data['managed_by_user_id'], maintenance_data['end_of_life'], maintenance_data['maintenance_interval'], maintenance_data['maintenance_last'], maintenance_data['maintenance_cost'], maintenance_data['status'], maintenance_data['maintenance_next'],maintenance_data.doc_id))
+        return maintanance
+        
+    @classmethod
+    def update_maintenance(cls):
+        """Update maintenance entries in the database."""
+        maintance_cost_next_month = 0
+        for device_data in Device.db_connector.all():
+            maintenance_next_month = datetime.datetime.now().date() + datetime.timedelta(days=30)
+            if device_data['maintenance_next'] <= maintenance_next_month:
+                maintance_cost_next_month += int(device_data['maintenance_cost'])
+
+        return maintance_cost_next_month
 
 if __name__ == "__main__":
     # Create a device

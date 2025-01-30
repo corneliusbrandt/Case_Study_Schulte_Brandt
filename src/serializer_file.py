@@ -1,6 +1,7 @@
 from datetime import datetime, date, time
 from tinydb.storages import JSONStorage
 from tinydb_serialization import Serializer, SerializationMiddleware
+from datetime import timedelta
 
 #from tinydb_serialization import DateTimeSerializer
 
@@ -33,6 +34,15 @@ class DateTimeSerializer(Serializer):
 
     def decode(self, s):
         return datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
+    
+    class TimedeltaSerializer(Serializer):
+        OBJ_CLASS = timedelta  # The class this serializer handles
+
+        def encode(self, obj):
+            return obj.total_seconds()
+
+        def decode(self, s):
+            return timedelta(seconds=s)
 
 serializer = SerializationMiddleware(JSONStorage)
 serializer.register_serializer(DateTimeSerializer(), 'TinyDateTime')

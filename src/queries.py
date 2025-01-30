@@ -10,12 +10,9 @@ from serializer_file import serializer
 
 def find_devices() -> list:
     """Find all devices in the database."""
-    # Define the database connector
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('devices')
-    # Search the database for all devices that are active
     result = db_connector.all()
     
-    # The result is a list of dictionaries, we only want the device names
     if result:
         result = [x["device_name"] for x in result]
     
@@ -23,9 +20,14 @@ def find_devices() -> list:
 
 def find_users() -> list:
     """Find all users in the database."""
-    # Define the database connector
     db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('users')
-    # Search the database for all users
+    result = db_connector.all()
+    
+    return result
+
+def find_maintenance() -> list:
+    """Find all maintenance entries in the database."""
+    db_connector = TinyDB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'device_manager.json'), storage=serializer).table('maintenance')
     result = db_connector.all()
     
     return result
